@@ -1,4 +1,5 @@
-using Revise, HerbCore, HerbConstraints, HerbSearch, HerbGrammar, HerbInterpret, HerbSpecification, MLStyle
+using Revise, MLStyle
+using HerbCore, HerbConstraints, HerbSearch, HerbGrammar, HerbInterpret, HerbSpecification
 
 include("_thesis_helpers.jl")
 include("_helper_functions.jl")
@@ -15,6 +16,10 @@ function main(grammartype, number_of_constraints::Int=typemax(Int); MAX_TIME=600
     name = "grammar$(grammartype)"
     if number_of_constraints < typemax(Int)
         name = name * "_constraints$(number_of_constraints)"
+    end
+    dirpath = dirname(get_filename(name))
+    if !isdir(dirpath)
+        mkdir(dirpath)
     end
     open(get_filename(name), "w") do file
         for max_size ∈ 1:100
@@ -34,6 +39,106 @@ function main(grammartype, number_of_constraints::Int=typemax(Int); MAX_TIME=600
         end
     end
 end
+
+#enumerate all with the GenericSolver
+function bottom_up_main(grammartype, number_of_constraints::Int=typemax(Int); MAX_TIME=600)
+    @assert grammartype == robots || grammartype == arithmetic || grammartype == symbolic || grammartype == lists || grammartype == lists_grounded
+    name = "bus_grammar$(grammartype)"
+    if number_of_constraints < typemax(Int)
+        name = name * "_constraints$(number_of_constraints)"
+    end
+    dirpath = dirname(get_filename(name))
+    if !isdir(dirpath)
+        mkdir(dirpath)
+    end
+    problem=nothing
+    println("Writing to $(get_filename(name))")
+    open(get_filename(name), "w") do file
+        for max_depth ∈ 1:7
+            println("max_depth = $max_depth")
+            grammar = get_thesis_grammar(grammartype, number_of_constraints)
+
+            iter = BUUniformIterator(grammar, get_starting_symbol(grammartype), max_depth=max_depth)
+            max_bank_size = 0
+
+            start_time = time()
+            state = Base.iterate(iter)
+            while state !== nothing
+                if time() - start_time > MAX_TIME
+                    @warn "Last experiment took $(time() - start_time) seconds"
+                    break
+                end
+
+                program, new_state = state
+                bank = new_state.bank.tree_shapes_by_symbol
+                bank_size = sum(length(v) for v in values(bank))
+                # println("bank_size: $bank_size")
+                if bank_size > max_bank_size
+                    max_bank_size = bank_size
+                end
+
+                # Move to the next state
+                state = Base.iterate(iter, new_state)
+            end
+
+            println("max_bank_size: $max_bank_size")
+
+            println(file, "$max_depth, $max_bank_size, $(time()-start_time)")
+
+        end
+    end
+end
+
+
+#enumerate all with the GenericSolver
+function bottom_up_retrospective(grammartype, number_of_constraints::Int=typemax(Int); MAX_TIME=600)
+    @assert grammartype == robots || grammartype == arithmetic || grammartype == symbolic || grammartype == lists || grammartype == lists_grounded
+    name = "bus_grammar$(grammartype)_retrospective"
+    if number_of_constraints < typemax(Int)
+        name = name * "_constraints$(number_of_constraints)"
+    end
+    dirpath = dirname(get_filename(name))
+    if !isdir(dirpath)
+        mkdir(dirpath)
+    end
+    problem=nothing
+    println("Writing to $(get_filename(name))")
+    open(get_filename(name), "w") do file
+        for max_depth ∈ 1:6
+            println("max_depth = $max_depth")
+            grammar = get_thesis_grammar(grammartype, number_of_constraints)
+            clearconstraints!(grammar)
+
+            iter = BUDepthIterator(grammar, get_starting_symbol(grammartype), max_depth=max_depth)
+            max_bank_size = 0
+
+            start_time = time()
+            state = Base.iterate(iter)
+            while state !== nothing
+                if time() - start_time > MAX_TIME
+                    @warn "Last experiment took $(time() - start_time) seconds"
+                    break
+                end
+
+                program, new_state = state
+                bank = new_state.bank.rulenodes_by_symbol
+                bank_size = sum(length(v) for v in values(bank))
+                # println("bank_size: $bank_size")
+                if bank_size > max_bank_size
+                    max_bank_size = bank_size
+                end
+
+                # Move to the next state
+                state = Base.iterate(iter, new_state)
+            end
+
+            println("max_bank_size: $max_bank_size")
+
+            println(file, "$max_depth, $max_bank_size, $(time()-start_time)")
+        end
+    end
+end
+
 
 #enumerate all, and retrospective apply constraints
 function retrospective(grammartype, number_of_constraints::Int=typemax(Int); MAX_TIME=600)
@@ -114,5 +219,7 @@ end
 
 #manual experiments
 for _ ∈ 1:1
-    main(lists, 0, MAX_TIME=1400)
+    # main(lists, 0, MAX_TIME=1400)
+    # bottom_up_main(lists, MAX_TIME=600)
+    bottom_up_retrospective(lists, MAX_TIME=600)
 end
