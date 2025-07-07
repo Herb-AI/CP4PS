@@ -1,0 +1,121 @@
+Problem,Program,Effectivity,Time_in_s
+problem_11604909,$(Expr(:Start)),100001,2.474279849
+problem_12948338,$(Expr(:Start)),300003,9.002509633
+problem_17212077,$(Expr(:Start)),100001,1.853653365
+problem_19274448,"contains_cvc(_arg_1, ""9999999"")",3,0.001401107
+problem_19558979,"at_cvc(_arg_1, _arg_2)",1,0.002043459
+problem_2171308,$(Expr(:Start)),100001,2.28293449
+problem_23435880,"indexof_cvc(replace_cvc(_arg_1, _arg_2, int_to_str_cvc(1)), "" "", 0)",45504,1.182498149
+problem_25239569,$(Expr(:Start)),300003,5.213434283
+problem_28627624_1,$(Expr(:Start)),100001,1.865348572
+problem_30732554,$(Expr(:Start)),300003,7.948158862
+problem_31753108,$(Expr(:Start)),100001,1.721793042
+problem_33619752,$(Expr(:Start)),300003,7.600575004
+problem_34801680,$(Expr(:Start)),100001,1.884649167
+problem_35016216,"if contains_cvc(_arg_1, ""C0"")
+    _arg_1
+else
+    _arg_2
+end",298,0.035031813
+problem_35744094,$(Expr(:Start)),300003,6.831989308
+problem_36462127,$(Expr(:Start)),100001,1.827297551
+problem_37281007,"contains_cvc(_arg_1, _arg_2)",1,0.001529293
+problem_37534494,"if contains_cvc(_arg_1, _arg_3)
+    _arg_1
+else
+    _arg_2
+end",58,0.036145134
+problem_38664547,$(Expr(:Start)),300003,9.390525753
+problem_38871714,$(Expr(:Start)),100001,1.88776332
+problem_39060015,$(Expr(:Start)),300003,7.215035649
+problem_40498040,"-1 == indexof_cvc(_arg_1, ""overhead"", 0)",1955,0.042166243
+problem_41503046,$(Expr(:Start)),300003,6.356109536
+problem_43120683,$(Expr(:Start)),100001,1.429270361
+problem_43606446,$(Expr(:Start)),300003,5.604651737
+problem_44789427,$(Expr(:Start)),300003,6.742543449
+problem_add_a_line_break_with_a_formula,$(Expr(:Start)),100001,2.881922482
+problem_cell_contains_all_of_many_things,"contains_cvc(replace_cvc(_arg_1, _arg_2, _arg_3), _arg_4)",2,0.044772079
+problem_cell_contains_number,"contains_cvc(replace_cvc(_arg_1, ""5"", ""2""), ""2"")",8835,0.150592444
+problem_cell_contains_one_of_many_things,"contains_cvc(_arg_1, replace_cvc(_arg_2, _arg_3, _arg_4))",1,0.044378784
+problem_cell_contains_one_of_many_with_exclusions,"contains_cvc(replace_cvc(_arg_1, _arg_2, _arg_4), _arg_3)",4,0.044847999
+problem_cell_contains_some_words_but_not_others,"contains_cvc(_arg_1, replace_cvc(_arg_2, _arg_3, _arg_4))",1,0.045818889
+problem_cell_contains_specific_text,"contains_cvc(_arg_1, _arg_2)",1,0.001636596
+problem_cell_equals_one_of_many_things,$(Expr(:Start)),300003,18.531417475
+problem_change_negative_numbers_to_positive,"replace_cvc(_arg_1, ""-"", """")",68,0.006412523
+problem_clean_and_reformat_telephone_numbers,$(Expr(:Start)),300003,4.765149993
+problem_compare_two_strings,"contains_cvc(_arg_1, _arg_2)",1,0.001490745
+problem_convert_numbers_to_text,int_to_str_cvc(_arg_1),1,0.000825337
+problem_convert_text_to_numbers,str_to_int_cvc(_arg_1),1,0.000826917
+problem_count_consecutive_monthly_orders,$(Expr(:Start)),300003,7.174347682
+problem_count_line_breaks_in_cell,$(Expr(:Start)),300003,8.512615894
+problem_count_specific_characters_in_a_cell,"len_cvc(_arg_1) - len_cvc(replace_cvc(_arg_1, _arg_2, """"))",52955,1.445083389
+problem_count_specific_words_in_a_cell,"if contains_cvc(_arg_1, _arg_2)
+    1 - -1
+else
+    0
+end",11495,0.385377108
+problem_count_total_characters_in_a_cell,len_cvc(_arg_1),2,0.001066467
+problem_count_total_words_in_a_cell,$(Expr(:Start)),300003,6.685512863
+problem_create_email_address_from_name,$(Expr(:Start)),100001,2.086110696
+problem_create_email_address_with_name_and_domain,$(Expr(:Start)),100001,2.877497365
+problem_exceljet1,$(Expr(:Start)),300003,6.209025061
+problem_exceljet2,$(Expr(:Start)),100001,1.851039382
+problem_exceljet3,$(Expr(:Start)),100001,1.871781819
+problem_exceljet4,$(Expr(:Start)),100001,1.905253052
+problem_extract_nth_word_from_text_string,$(Expr(:Start)),300003,6.781227452
+problem_extract_text_between_parentheses,$(Expr(:Start)),100001,1.832233973
+problem_extract_word_containing_specific_text,$(Expr(:Start)),100001,1.707860499
+problem_extract_word_that_begins_with_specific_character,$(Expr(:Start)),100001,1.743892079
+problem_find_nth_occurrence_of_character,$(Expr(:Start)),300003,6.313393467
+problem_get_domain_from_email_address_2,$(Expr(:Start)),300003,6.191319691
+problem_get_domain_name_from_url,$(Expr(:Start)),300003,4.969804243
+problem_get_first_name_from_name,$(Expr(:Start)),100001,2.283884533
+problem_get_first_name_from_name_with_comma,$(Expr(:Start)),100001,2.273865668
+problem_get_first_word,$(Expr(:Start)),300003,8.414230207
+problem_get_last_line_in_cell,$(Expr(:Start)),300003,7.830798141
+problem_get_last_name_from_name,$(Expr(:Start)),100001,2.267408274
+problem_get_last_name_from_name_with_comma,$(Expr(:Start)),100001,1.887067218
+problem_get_last_word,$(Expr(:Start)),100001,2.304877658
+problem_get_middle_name_from_full_name,$(Expr(:Start)),300003,8.472615727
+problem_join_cells_with_comma,$(Expr(:Start)),100001,2.941390949
+problem_join_first_and_last_name,$(Expr(:Start)),100001,2.303843329
+problem_most_frequently_occurring_text,"if contains_cvc(_arg_1, _arg_2)
+    _arg_2
+else
+    _arg_3
+end",43,0.033214631
+problem_phone_5_short,$(Expr(:Start)),300003,5.397641669
+problem_phone_6_short,$(Expr(:Start)),300003,5.276253888
+problem_phone_7_short,$(Expr(:Start)),100001,1.774276909
+problem_phone_9_short,$(Expr(:Start)),100001,1.768037267
+problem_position_of_2nd_3rd_etc_instance_of_character,"len_cvc(if true
+            _arg_1
+        else
+            _arg_2
+        end) - _arg_3",690,0.071404844
+problem_remove_characters_from_left,"replace_cvc(_arg_1, substr_cvc(_arg_1, 1, _arg_2), """")",3707,0.160604258
+problem_remove_characters_from_right,"str_to_int_cvc(substr_cvc(_arg_1, 1, indexof_cvc(_arg_1, "" "", 0)))",85251,1.875961051
+problem_remove_file_extension_from_filename,$(Expr(:Start)),100001,1.888419289
+problem_remove_leading_and_trailing_spaces_from_text,$(Expr(:Start)),300003,6.762652197
+problem_remove_text_by_matching,"replace_cvc(_arg_1, ""-"", """")",68,0.006235175
+problem_remove_text_by_position,$(Expr(:Start)),100001,1.860361572
+problem_remove_unwanted_characters,"replace_cvc(_arg_1, _arg_2, """")",19,0.006010985
+problem_replace_one_character_with_another,"replace_cvc(_arg_1, "" "", ""-"")",66,0.006268541
+problem_split_numbers_from_units_of_measure_1,"substr_cvc(concat_cvc("" "", _arg_1), 2, _arg_2)",305,0.041262293
+problem_split_numbers_from_units_of_measure_2,"substr_cvc(_arg_1, _arg_2, len_cvc(_arg_1))",52,0.013635079
+problem_split_text_and_numbers,"substr_cvc(concat_cvc("" "", _arg_1), 2, _arg_2)",305,0.042669412
+problem_split_text_string_at_specific_character,$(Expr(:Start)),100001,2.332748996
+problem_stackoverflow1,$(Expr(:Start)),300003,5.124082243
+problem_stackoverflow10,$(Expr(:Start)),300003,6.19312285
+problem_stackoverflow11,$(Expr(:Start)),100001,1.207203171
+problem_stackoverflow2,$(Expr(:Start)),100001,1.829896771
+problem_stackoverflow3,$(Expr(:Start)),300003,7.033286638
+problem_stackoverflow4,$(Expr(:Start)),100001,1.728701771
+problem_stackoverflow5,$(Expr(:Start)),100001,1.523669769
+problem_stackoverflow6,$(Expr(:Start)),100001,1.888406555
+problem_stackoverflow7,$(Expr(:Start)),300003,6.8913231
+problem_stackoverflow8,$(Expr(:Start)),100001,1.652847082
+problem_stackoverflow9,$(Expr(:Start)),100001,2.242082447
+problem_strip_html_from_text_or_numbers,$(Expr(:Start)),100001,1.835960952
+problem_strip_non_numeric_characters,$(Expr(:Start)),300003,4.521649931
+problem_strip_numeric_characters_from_cell,$(Expr(:Start)),300003,4.902341705
