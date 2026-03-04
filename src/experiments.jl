@@ -54,7 +54,7 @@ function bottomup_pure(grammartype; MAX_TIME=600)
     end
 
     open(get_filename(name), "w") do file
-        for max_size ∈ max_sizes
+        for max_size ∈ 1:100
             println("max_size = $max_size")
 
             grammar = get_thesis_grammar(grammartype, number_of_constraints)
@@ -91,7 +91,7 @@ function bottomup_retrospective(grammartype, number_of_constraints::Int=typemax(
     end
 
     open(get_filename(name), "w") do file
-        for max_size ∈ max_sizes
+        for max_size ∈ 1:100
             println("max_size = $max_size")
 
             grammar = get_thesis_grammar(grammartype, number_of_constraints)

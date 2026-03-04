@@ -15,7 +15,7 @@ using Garden.Probe
 
 # Run time parameters
 max_time = 120
-max_enums = 1000000
+max_enums = 10^6
 max_size = 10 
 max_depth = 6 
 
@@ -191,10 +191,10 @@ function run_EUSolver(ben_module; constrained_space=2)
     results_df = DataFrame(Problem = AbstractString[], Program = Any[], Effectivity = Int[], Time_in_s = Float64[])
 
     # EUSolver parameters
-	n_predicates = 5
-    sym_bool = :ntBool
+	n_predicates = 100
+    sym_bool = ben_module == PBE_SLIA_Track_2019 ? :ntBool : :ntBool
 	sym_start = :Start
-	sym_constraint = :Input
+    sym_constraint = :nothing
 
     results_dir = "data/$ben_module/"
     if !isdir(results_dir) mkpath(results_dir) end
@@ -210,6 +210,7 @@ function run_EUSolver(ben_module; constrained_space=2)
             if isnothing(idx_ifelse)
                 if ben_module == PBE_BV_Track_2018
                     add_rule!(problem_grammar, :($sym_bool = Start == UInt(0)))
+
                 end
 
                 add_rule!(problem_grammar, :($sym_start = $sym_bool ? $sym_start : $sym_start))
@@ -222,7 +223,9 @@ function run_EUSolver(ben_module; constrained_space=2)
             iterator = BFSIterator(problem_grammar, :Start; max_depth=max_depth, max_size=max_size)
             
             start_time = time_ns()
-
+k_2019
+                terminal_rules = collect(1:length(grammar.rules))[grammar.isterminal]
+                in_rules = input_rules(gra
             program, num_derivations = divide_and_conquer(
                 problem,
                 iterator,
@@ -259,13 +262,13 @@ function run_EUSolver(ben_module; constrained_space=2)
     end
 end
 
-for i in 0:2
-    println("Running constraint set $i.")
-    # run_probe(PBE_SLIA_Track_2019; constrained_space=i)
-    run_EUSolver(PBE_SLIA_Track_2019; constrained_space=i)
-end
+# for i in 0:2
+#     println("Running constraint set $i.")
+#     # run_probe(PBE_SLIA_Track_2019; constrained_space=i)
+#     # run_EUSolver(PBE_SLIA_Track_2019; constrained_space=i)
+# end
 
 for i in 0:2
+    run_EUSolver(PBE_BV_Track_2018; constrained_space=i)
     run_probe(PBE_BV_Track_2018; constrained_space=i)
-    # run_EUSolver(PBE_BV_Track_2018; constrained_space=i)
 end
