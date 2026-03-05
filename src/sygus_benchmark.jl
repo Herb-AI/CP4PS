@@ -77,7 +77,7 @@ function add_benchmark_constraints(grammar, ben_module; constrained_space=2)
                 end
             end
         end 
-e
+
         if constrained_space >= 2
             # for i in 1:length(grammar.rules)
             #     addconstraint!(grammar, Unique(i))
@@ -223,9 +223,7 @@ function run_EUSolver(ben_module; constrained_space=2)
             iterator = BFSIterator(problem_grammar, :Start; max_depth=max_depth, max_size=max_size)
             
             start_time = time_ns()
-k_2019
-                terminal_rules = collect(1:length(grammar.rules))[grammar.isterminal]
-                in_rules = input_rules(gra
+
             program, num_derivations = divide_and_conquer(
                 problem,
                 iterator,
@@ -243,10 +241,10 @@ k_2019
                 expr = rulenode2expr(program, problem_grammar)
             end
 
-            st = grammar2symboltable(problem_grammar, Main)
-            if HerbSearch.evaluate(problem, expr, st, allow_evaluation_errors=true) != 1
-                expr = Expr(:Start)
-            end
+            # st = grammar2symboltable(problem_grammar, Main)
+            # if HerbSearch.evaluate(problem, expr, st, allow_evaluation_errors=true) != 1
+            #     expr = Expr(:Start)
+            # end
 
             elapsed_time_ns = time_ns() - start_time
             elapsed_time_s = elapsed_time_ns / 1e9  # Convert nanoseconds to seconds
@@ -268,7 +266,53 @@ end
 #     # run_EUSolver(PBE_SLIA_Track_2019; constrained_space=i)
 # end
 
-for i in 0:2
-    run_EUSolver(PBE_BV_Track_2018; constrained_space=i)
-    run_probe(PBE_BV_Track_2018; constrained_space=i)
+# for i in 0:2
+#     run_EUSolver(PBE_BV_Track_2018; constrained_space=i)
+#     run_probe(PBE_BV_Track_2018; constrained_space=i)
+# end
+
+if abspath(PROGRAM_FILE) == @__FILE__
+    using HerbBenchmarks
+
+    function resolve_benchmark(s::AbstractString)::Module
+        sU = uppercase(String(s))
+
+        # Friendly aliases
+        if sU in ("BV2018", "PBE_BV_TRACK_2018")
+            return HerbBenchmarks.PBE_BV_Track_2018
+        elseif sU in ("SLIA2019", "PBE_SLIA_TRACK_2019")
+            return HerbBenchmarks.PBE_SLIA_Track_2019
+        end
+
+        # Otherwise: allow passing the module name directly, e.g. "PBE_BV_Track_2018"
+        sym = Symbol(s)
+        if isdefined(HerbBenchmarks, sym)
+            m = getfield(HerbBenchmarks, sym)
+            if m isa Module
+                return m
+            end
+        end
+        error("Unknown benchmark '$s'. Use BV2018, SLIA2019, or a HerbBenchmarks module name.")
+    end
+
+    # usage:
+    #   julia --project=. src/sygus_benchmark.jl EU BV2018 0
+    #   julia --project=. src/sygus_benchmark.jl PROBE SLIA2019 2
+    if length(ARGS) < 3
+        error("Usage: julia --project=. src/sygus_benchmark.jl (EU|PROBE) (BV2018|SLIA2019|ModuleName) <0|1|2>")
+    end
+
+    mode  = uppercase(ARGS[1])
+    bench = ARGS[2]
+    i     = parse(Int, ARGS[3])
+
+    ben_module = resolve_benchmark(bench)
+
+    if mode == "EU"
+        run_EUSolver(ben_module; constrained_space=i)
+    elseif mode == "PROBE"
+        run_probe(ben_module; constrained_space=i)
+    else
+        error("Unknown mode '$mode'. Use EU or PROBE.")
+    end
 end
