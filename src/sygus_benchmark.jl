@@ -19,7 +19,70 @@ max_enums = 10^6
 max_size = 10 
 max_depth = 6 
 
-# utils
+# IO utils
+const UNSOLVED_PROGRAM = "\$(Expr(:Start))"
+
+function init_results_df()
+    DataFrame(
+        Problem     = String[],
+        Program     = String[],
+        Effectivity = Int[],
+        Time_in_s   = Float64[],
+    )
+end
+
+function load_results(results_file::AbstractString)
+    if !isfile(results_file)
+        return init_results_df()
+    end
+
+    df = CSV.read(results_file, DataFrame)
+
+    required = [:Problem, :Program, :Effectivity, :Time_in_s]
+    existing = propertynames(df)
+
+    for col in required
+        col in existing || error("Existing results file $results_file is missing column $col")
+    end
+
+    df = select(df, required)
+
+    # If duplicates ever happened, keep the last occurrence
+    reverse!(df)
+    unique!(df, :Problem)
+    reverse!(df)
+
+    return df
+end
+
+function save_results_atomic(results_file::AbstractString, df::DataFrame)
+    mkpath(dirname(results_file))
+    tmp_file = results_file * ".tmp"
+    CSV.write(tmp_file, df)
+    mv(tmp_file, results_file; force=true)
+end
+
+program_to_string(expr) = isnothing(expr) ? UNSOLVED_PROGRAM : sprint(show, expr)
+
+function checkpoint_result!(
+    results_df::DataFrame,
+    results_file::AbstractString,
+    problem_name,
+    expr,
+    effectivity,
+    elapsed_time_s,
+)
+    push!(results_df, (
+        String(problem_name),
+        program_to_string(expr),
+        Int(effectivity),
+        Float64(elapsed_time_s),
+    ))
+
+    save_results_atomic(results_file, results_df)
+end
+
+# Herb utils
 input_rules(grammar::AbstractGrammar) = findall(rule -> occursin("_arg_", string(rule)), grammar.rules)
 
 find_rules(grammar::AbstractGrammar, rule_string::AbstractString) = findall(rule -> occursin(rule_string, string(rule)), grammar.rules)
@@ -113,39 +176,34 @@ function run_probe(ben_module; constrained_space=2)
         problem_grammar_pairs = problem_grammar_pairs[1:100]
     end
 
-    results_df = DataFrame(
-        Problem      = AbstractString[],
-        Program      = Any[],
-        Effectivity  = Int[],
-        Time_in_s    = Float64[],
-    )
-
     results_dir = "data/$ben_module/"
-    if !isdir(results_dir)
-        mkpath(results_dir)
-    end
+    mkpath(results_dir)
     results_file = "$results_dir$(name)_$(constrained_space)_constraints_results.csv"
 
-    if isfile(results_file)
-        println("$results_file exists already, not running search for problems.")
-        return
-    end
+    results_df = load_results(results_file)
+    completed = Set(String.(results_df.Problem))
 
-    println("Running problems...")
+    println("Resuming $name on $ben_module (constraint set $constrained_space).")
+    println("Already completed $(length(completed)) problems.")
+    println("Checkpoint file: $results_file")
 
     for (i, p_g_pair) in ProgressBar(enumerate(problem_grammar_pairs))
         problem = p_g_pair.problem
-        problem_grammar = deepcopy(p_g_pair.grammar)
 
-        if length(problem.spec) > 100
+        if String(problem.name) in completed
             continue
         end
 
-        # add syntax constraints
+        if length(problem.spec) > 100
+            println("Skipping $(problem.name): spec too large ($(length(problem.spec)) examples).")
+            continue
+        end
+
+        problem_grammar = deepcopy(p_g_pair.grammar)
+
         clearconstraints!(problem_grammar)
         add_benchmark_constraints(problem_grammar, ben_module; constrained_space=constrained_space)
 
-        # Compile interpreter ONCE per constrained grammar/problem
         interp = HerbInterpret.make_interpreter(
             problem_grammar;
             target_module = ben_module,
@@ -165,15 +223,22 @@ function run_probe(ben_module; constrained_space=2)
         )
 
         elapsed_time_s = (time_ns() - start_time) / 1e9
+        expr = isnothing(program) ? nothing : rulenode2expr(program, problem_grammar)
 
-        expr = isnothing(program) ? Expr(:Start) : rulenode2expr(program, problem_grammar)
+        checkpoint_result!(
+            results_df,
+            results_file,
+            problem.name,
+            expr,
+            num_derivations,
+            elapsed_time_s,
+        )
 
-        push!(results_df, (problem.name, expr, num_derivations, elapsed_time_s))
+        push!(completed, String(problem.name))
         GC.gc()
     end
 
-    CSV.write(results_file, results_df)
-    println("Writing results to $results_file")
+    println("Finished. Results stored in $results_file")
 end
 
 
@@ -181,84 +246,84 @@ end
 constrained_space denotes which set of constraints to use for RQ2.
 """
 function run_EUSolver(ben_module; constrained_space=2)
-    # Settings
     name = "EUSolver"
-    problem_grammar_pairs = get_all_problem_grammar_pairs(ben_module)[30:31]
+
+    problem_grammar_pairs = get_all_problem_grammar_pairs(ben_module)
     if ben_module == PBE_SLIA_Track_2019
         problem_grammar_pairs = problem_grammar_pairs[1:100]
     end
 
-    results_df = DataFrame(Problem = AbstractString[], Program = Any[], Effectivity = Int[], Time_in_s = Float64[])
-
-    # EUSolver parameters
-	n_predicates = 100
-    sym_bool = ben_module == PBE_SLIA_Track_2019 ? :ntBool : :ntBool
-	sym_start = :Start
+    n_predicates = 100
+    sym_bool = :ntBool
+    sym_start = :Start
     sym_constraint = :nothing
 
     results_dir = "data/$ben_module/"
-    if !isdir(results_dir) mkpath(results_dir) end
+    mkpath(results_dir)
     results_file = "$results_dir$(name)_$(constrained_space)_constraints_results.csv"
 
-    if !isfile(results_file)
-        println("Running problems...")
-        for (i, p_g_pair) in ProgressBar(enumerate(problem_grammar_pairs))
-            problem, problem_grammar = p_g_pair.problem, deepcopy(p_g_pair.grammar)
+    results_df = load_results(results_file)
+    completed = Set(String.(results_df.Problem))
 
-            idx_ifelse = findfirst(r -> r == :($sym_bool ? $sym_start : $sym_start), problem_grammar.rules) 
+    println("Resuming $name on $ben_module (constraint set $constrained_space).")
+    println("Already completed $(length(completed)) problems.")
+    println("Checkpoint file: $results_file")
 
-            if isnothing(idx_ifelse)
-                if ben_module == PBE_BV_Track_2018
-                    add_rule!(problem_grammar, :($sym_bool = Start == UInt(0)))
+    for (i, p_g_pair) in ProgressBar(enumerate(problem_grammar_pairs))
+        problem = p_g_pair.problem
 
-                end
-
-                add_rule!(problem_grammar, :($sym_start = $sym_bool ? $sym_start : $sym_start))
-            end
-
-            # add syntax constraints
-            clearconstraints!(problem_grammar)
-            add_benchmark_constraints(problem_grammar, ben_module; constrained_space=constrained_space)
-
-            iterator = BFSIterator(problem_grammar, :Start; max_depth=max_depth, max_size=max_size)
-            
-            start_time = time_ns()
-
-            program, num_derivations = divide_and_conquer(
-                problem,
-                iterator,
-                sym_bool,
-                sym_start,
-                sym_constraint,
-                n_predicates,
-                max_time,
-                max_enums
-            )
-
-            if isnothing(program)
-                expr = Expr(:Start)
-            else
-                expr = rulenode2expr(program, problem_grammar)
-            end
-
-            # st = grammar2symboltable(problem_grammar, Main)
-            # if HerbSearch.evaluate(problem, expr, st, allow_evaluation_errors=true) != 1
-            #     expr = Expr(:Start)
-            # end
-
-            elapsed_time_ns = time_ns() - start_time
-            elapsed_time_s = elapsed_time_ns / 1e9  # Convert nanoseconds to seconds
-
-            push!(results_df, (problem.name, expr, num_derivations, elapsed_time_s))
-            GC.gc()
+        if String(problem.name) in completed
+            continue
         end
 
-        CSV.write(results_file, results_df)
-        println("Writing results to $results_file")
-    else
-        println("$results_file exists already, not running search for problems.")
+        problem_grammar = deepcopy(p_g_pair.grammar)
+
+        idx_ifelse = findfirst(r -> r == :($sym_bool ? $sym_start : $sym_start), problem_grammar.rules)
+
+        if isnothing(idx_ifelse)
+            if ben_module == PBE_BV_Track_2018
+                add_rule!(problem_grammar, :($sym_bool = Start == UInt(0)))
+            end
+            add_rule!(problem_grammar, :($sym_start = $sym_bool ? $sym_start : $sym_start))
+        end
+
+        clearconstraints!(problem_grammar)
+        add_benchmark_constraints(problem_grammar, ben_module; constrained_space=constrained_space)
+
+        iterator = BFSIterator(problem_grammar, :Start; max_depth=max_depth, max_size=max_size)
+
+        start_time = time_ns()
+
+        program, num_derivations = divide_and_conquer(
+            problem,
+            iterator,
+            sym_bool,
+            sym_start,
+            sym_constraint,
+            n_predicates,
+            max_time,
+            max_enums
+        )
+
+        elapsed_time_s = (time_ns() - start_time) / 1e9
+        expr = isnothing(program) ? nothing : rulenode2expr(program, problem_grammar)
+
+        checkpoint_result!(
+            results_df,
+            results_file,
+            problem.name,
+            expr,
+            num_derivations,
+            elapsed_time_s,
+        )
+
+        push!(completed, String(problem.name))
+        GC.gc()
     end
+
+    println("Finished. Results stored in $results_file")
 end
+
 
 # for i in 0:2
 #     println("Running constraint set $i.")

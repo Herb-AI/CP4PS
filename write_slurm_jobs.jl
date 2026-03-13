@@ -5,21 +5,20 @@ const OUTDIR = joinpath("jobscripts", "slurm")
 const LOGDIR = joinpath("jobscripts", "logs")
 
 const PARTITION   = "compute-p1"
-const DEFAULT_TIME = "24:00:00"
-const BV_TIME      = "48:00:00"
+const TIME        = "24:00:00"
 const CPUS        = 8
 const MEM_PER_CPU = "2G"  # => 16G total for 8 CPUs
 
 mkpath(OUTDIR)
 mkpath(LOGDIR)
 
-function write_job(path::String, jobname::String, cmd::String; time::String=DEFAULT_TIME)
+function write_job(path::String, jobname::String, cmd::String)
     open(path, "w") do io
         print(io, """
         #!/bin/bash
         #SBATCH --job-name=$jobname
         #SBATCH --partition=$PARTITION
-        #SBATCH --time=$time
+        #SBATCH --time=$TIME
         #SBATCH --ntasks=1
         #SBATCH --cpus-per-task=$CPUS
         #SBATCH --mem-per-cpu=$MEM_PER_CPU
@@ -70,10 +69,7 @@ for (bench_arg, bench_tag) in benchmarks
             jobname = "$(bench_tag)_$(mode_tag)_i$(i)"
             path    = joinpath(OUTDIR, "$(jobname).sh")
             cmd     = """julia --project=. --threads "\$JULIA_NUM_THREADS" src/sygus_benchmark.jl $mode_arg $bench_arg $i"""
-
-            job_time = bench_arg == "BV2018" ? BV_TIME : DEFAULT_TIME
-
-            write_job(path, jobname, cmd; time=job_time)
+            write_job(path, jobname, cmd)
         end
     end
 end
