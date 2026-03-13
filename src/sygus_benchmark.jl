@@ -14,7 +14,7 @@ using HerbBenchmarks.PBE_BV_Track_2018
 using Garden.Probe
 
 # Run time parameters
-max_time = 120
+max_time = 300
 max_enums = 10^6
 max_size = 10 
 max_depth = 6 
@@ -183,7 +183,7 @@ constrained_space denotes which set of constraints to use for RQ2.
 function run_EUSolver(ben_module; constrained_space=2)
     # Settings
     name = "EUSolver"
-    problem_grammar_pairs = get_all_problem_grammar_pairs(ben_module)
+    problem_grammar_pairs = get_all_problem_grammar_pairs(ben_module)[30:31]
     if ben_module == PBE_SLIA_Track_2019
         problem_grammar_pairs = problem_grammar_pairs[1:100]
     end
