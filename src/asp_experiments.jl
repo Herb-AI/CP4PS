@@ -12,7 +12,8 @@ symbolic = 3
 lists = 4
 lists_grounded = 5
 
-const GRAMMARS_4 = (robots, arithmetic, symbolic, lists)
+# const GRAMMARS_4 = (robots, arithmetic, symbolic, lists)
+const GRAMMARS_4 = (arithmetic, symbolic, lists)
 
 function maybe_fsync(io::IO)
     Sys.isunix() || return

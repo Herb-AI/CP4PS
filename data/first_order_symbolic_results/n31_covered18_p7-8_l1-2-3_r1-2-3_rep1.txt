@@ -1,0 +1,36 @@
+max_size = 8
+number_of_constraints = 31
+first_order_covered_cases = 18
+grounded_constraints = 30
+parent_domain = {7,8}
+left_domain = {1,2,3}
+right_domain = {1,2,3}
+programs = 1358656
+runtime_seconds = 6.178941933
+
+SolverStatistics: 
+[GenericSolver] LocalForbidden hardfail ......................... 21419
+[GenericSolver] LocalForbidden propagation ...................... 55023
+[GenericSolver] LocalForbidden softfail ......................... 33604
+[GenericSolver] new_state! ...................................... 1
+[GenericSolver] post! LocalForbidden ............................ 10693
+[GenericSolver] save_state! ..................................... 770
+[GenericSolver] schedule! ....................................... 44330
+[GenericSolver] substitute! (domain decreasing, different shape)  215
+[GenericSolver] substitute! (domain decreasing, same shape) ..... 385
+[UniformSolver] LocalForbidden deduction ........................ 221712
+[UniformSolver] LocalForbidden hardfail ......................... 1207628
+[UniformSolver] LocalForbidden inconsistency .................... 110856
+[UniformSolver] LocalForbidden propagation ...................... 1838354
+[UniformSolver] LocalForbidden softfail ......................... 298158
+[UniformSolver] cancel post (1/2) ............................... 11027
+[UniformSolver] cancel post (2/2) ............................... 11027
+[UniformSolver] deactivate! ..................................... 1418313
+[UniformSolver] inconsistency ................................... 79560
+[UniformSolver] restore! ........................................ 1990954
+[UniformSolver] save_state! ..................................... 1990954
+[UniformSolver] schedule! ....................................... 2041598
+
+
+SEARCHNODES: 0
+PROPAGATION_CALLS: 1893377

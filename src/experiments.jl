@@ -212,7 +212,7 @@ function firstorderexperiment(grammartype, number_of_constraints::Int=typemax(In
     name = grammartype == lists_grounded  ? "grammar$(grammartype)_grounded" : "grammar$(grammartype)_firstorder"
     open(get_filename(name), "w") do file
         max_size = 8
-        println("max_size = $max_size")
+        println(file, "max_size = $max_size")
         grammar = get_thesis_grammar(grammartype, number_of_constraints)
 
         solver = GenericSolver(grammar, get_starting_symbol(grammartype), with_statistics=true, use_uniformsolver=true)
@@ -220,11 +220,16 @@ function firstorderexperiment(grammartype, number_of_constraints::Int=typemax(In
         
         @elapsed programs = length(iter)
 
-        println(solver.statistics)
+        println(file, solver.statistics)
 
-        println("SEARCHNODES: $(get_search_nodes(solver))")
+        println(file, "SEARCHNODES: $(get_search_nodes(solver))")
     end
 end
+
+firstorderexperiment(lists)
+firstorderexperiment(lists_grounded)
+
+exit()
 
 #manual experiments
 for gtype ∈ 1:4

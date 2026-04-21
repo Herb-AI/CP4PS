@@ -79,7 +79,7 @@ function checkpoint_result!(
         Float64(elapsed_time_s),
     ))
 
-    save_results_atomic(results_file, results_df)
+    save_results_atomic(results(_file, results_df)
 end
 
 # Herb utils

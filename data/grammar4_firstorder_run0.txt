@@ -1,0 +1,30 @@
+max_size = 8
+SolverStatistics: 
+[GenericSolver] LocalForbidden deduction ........................ 140
+[GenericSolver] LocalForbidden hardfail ......................... 2133
+[GenericSolver] LocalForbidden inconsistency .................... 1
+[GenericSolver] LocalForbidden propagation ...................... 12046
+[GenericSolver] LocalForbidden softfail ......................... 9772
+[GenericSolver] LocalForbiddenSequence deactivate ............... 33
+[GenericSolver] LocalForbiddenSequence deactivate by ignore_if .. 156
+[GenericSolver] LocalForbiddenSequence deduction ................ 117
+[GenericSolver] LocalForbiddenSequence propagation .............. 356
+[GenericSolver] inconsistency ................................... 1
+[GenericSolver] new_state! ...................................... 1
+[GenericSolver] post! LocalForbidden ............................ 3194
+[GenericSolver] post! LocalForbiddenSequence .................... 296
+[GenericSolver] save_state! ..................................... 453
+[GenericSolver] schedule! ....................................... 8926
+[GenericSolver] substitute! (domain decreasing, different shape)  209
+[GenericSolver] substitute! (domain decreasing, same shape) ..... 40
+[UniformSolver] LocalForbidden hardfail ......................... 127
+[UniformSolver] LocalForbidden propagation ...................... 127
+[UniformSolver] LocalForbiddenSequence deactivate ............... 12
+[UniformSolver] LocalForbiddenSequence deactivate by ignore_if .. 8
+[UniformSolver] LocalForbiddenSequence propagation .............. 20
+[UniformSolver] cancel post (1/2) ............................... 147
+[UniformSolver] cancel post (2/2) ............................... 147
+[UniformSolver] restore! ........................................ 694
+[UniformSolver] save_state! ..................................... 693
+
+SEARCHNODES: 0

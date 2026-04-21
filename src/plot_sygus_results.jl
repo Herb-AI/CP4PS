@@ -47,7 +47,7 @@ function plot_cumulative_problems!(results_file, plot_label; color=:auto, linest
     end
 
     df = CSV.read(results_file, DataFrame)
-    # max_eff = maximum(df.Effectivity)
+    max_eff = maximum(df.Effectivity)
     max_time = maximum(df.Time_in_s)
 
     filter!(row -> row.Program != "\$(Expr(:Start))", df)
@@ -196,6 +196,6 @@ plot_benchmark_time("HerbBenchmarks.PBE_BV_Track_2018")
 
 
 # Plot both benchmark sets
-# plot_benchmark("HerbBenchmarks.PBE_SLIA_Track_2019")
-# plot_benchmark("HerbBenchmarks.PBE_BV_Track_2018")
+plot_benchmark("HerbBenchmarks.PBE_SLIA_Track_2019")
+plot_benchmark("HerbBenchmarks.PBE_BV_Track_2018")
 

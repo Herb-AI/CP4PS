@@ -1,10 +1,12 @@
 name = "CP4PS"
 uuid = "429165c9-e50f-440f-9a67-01c606efe9e7"
-authors = []
 version = "0.1.0"
+authors = []
 
 [deps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
+Clingo_jll = "e1d4ad0e-dc8b-5d2d-8155-e9a55b531f08"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 DecisionTree = "7806a523-6efd-50cb-b5f6-3fa6f1930dbb"
 Garden = "22d0bc84-1826-4aaf-b584-c2a6a91114a2"
@@ -21,13 +23,26 @@ PGFPlotsX = "8314cec4-20b6-5062-9cdb-752b83310925"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 ProgressBars = "49802e3a-d2f1-5c88-81d8-b72133a6f568"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
+RuntimeGeneratedFunctions = "7e49a35a-f44a-4d26-94aa-eba1b4ca6b47"
+StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+
+[sources]
+Garden = {path = "/home/thinnerichs/.julia/dev/Garden.jl"}
+HerbBenchmarks = {path = "/home/thinnerichs/.julia/dev/HerbBenchmarks.jl"}
+HerbSearch = {path = "/home/thinnerichs/.julia/dev/HerbSearch"}
 
 [compat]
+BenchmarkTools = "1.6.3"
 CSV = "0.10.15"
+Clingo_jll = "5.7.1"
 DataFrames = "1.5.0"
 DecisionTree = "0.12.4"
+HerbConstraints = "1"
+HerbCore = "1"
 MLStyle = "0.4.17"
 PGFPlotsX = "1.6.2"
 Plots = "1.40.7"
 ProgressBars = "1.5.1"
 Revise = "3.6.2"
+RuntimeGeneratedFunctions = "0.5.17"
+StatsBase = "0.34.10"
