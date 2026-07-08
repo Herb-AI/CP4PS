@@ -11,7 +11,7 @@ using HerbBenchmarks
 using HerbBenchmarks.PBE_SLIA_Track_2019
 using HerbBenchmarks.PBE_BV_Track_2018
 
-using Garden.Probe
+# using Garden.Probe
 
 # Run time parameters
 max_time = 300
@@ -79,7 +79,7 @@ function checkpoint_result!(
         Float64(elapsed_time_s),
     ))
 
-    save_results_atomic(results(_file, results_df)
+    save_results_atomic(results_file, results_df)
 end
 
 # Herb utils
@@ -116,30 +116,82 @@ function add_benchmark_constraints(grammar, ben_module; constrained_space=2)
                 end
             end
 
-            for rule_string in ["bvxor", "bvand", "bvor"]
+            # a op a is always redundant: bvand(a,a)=a, bvor(a,a)=a, bvxor(a,a)=0,
+            # bvadd(a,a)=2a=smol(a) -- each already has a strictly shorter
+            # equivalent elsewhere in the grammar.
+            for rule_string in ["bvxor", "bvand", "bvor", "bvadd"]
                 indices = find_rules(grammar, rule_string)
                 if !isempty(indices)
                     RID_i = indices[1]
                     self_const = Forbidden(RuleNode(RID_i, [VarNode(:a), VarNode(:a)]))
-                    addconstraint!(grammar, self_const) 
+                    addconstraint!(grammar, self_const)
                 end
             end
 
-            indices = find_rules(grammar, "bvnot")
-            if !isempty(indices)
-                RID_NOT = indices[1]
+            idx_not = find_rules(grammar, "bvnot")
+            if !isempty(idx_not)
+                RID_NOT = idx_not[1]
                 no_double_not = Forbidden(RuleNode(RID_NOT, [RuleNode(RID_NOT, [VarNode(:a)])]))
-                addconstraint!(grammar, no_double_not) 
+                addconstraint!(grammar, no_double_not)
+
+                # x op NOT(x) folds to a constant (0 for AND, all-ones for OR/XOR),
+                # which is already directly expressible as a literal.
+                for rule_string in ["bvand", "bvor", "bvxor"]
+                    indices = find_rules(grammar, rule_string)
+                    if !isempty(indices)
+                        RID_i = indices[1]
+                        addconstraint!(grammar, Forbidden(RuleNode(RID_i, [VarNode(:a), RuleNode(RID_NOT, [VarNode(:a)])])))
+                        addconstraint!(grammar, Forbidden(RuleNode(RID_i, [RuleNode(RID_NOT, [VarNode(:a)]), VarNode(:a)])))
+                    end
+                end
             end
 
+            # Boolean absorption: a AND (a OR b) = a, and a OR (a AND b) = a.
+            idx_and = find_rules(grammar, "bvand")
+            idx_or = find_rules(grammar, "bvor")
+            if !isempty(idx_and) && !isempty(idx_or)
+                RID_AND, RID_OR = idx_and[1], idx_or[1]
+                addconstraint!(grammar, Forbidden(RuleNode(RID_AND, [VarNode(:a), RuleNode(RID_OR, [VarNode(:a), VarNode(:b)])])))
+                addconstraint!(grammar, Forbidden(RuleNode(RID_AND, [RuleNode(RID_OR, [VarNode(:a), VarNode(:b)]), VarNode(:a)])))
+                addconstraint!(grammar, Forbidden(RuleNode(RID_OR, [VarNode(:a), RuleNode(RID_AND, [VarNode(:a), VarNode(:b)])])))
+                addconstraint!(grammar, Forbidden(RuleNode(RID_OR, [RuleNode(RID_AND, [VarNode(:a), VarNode(:b)]), VarNode(:a)])))
+            end
+
+            # Chained logical right-shifts commute: (x >> i) >> j == (x >> j) >> i.
+            # Keep a single canonical nesting order per pair of distinct shift
+            # amounts to avoid exploring both equivalent nestings.
+            shift_rule_strings = ["ehad", "arba", "shesh"]
+            shift_indices = [find_rules(grammar, s) for s in shift_rule_strings]
+            for outer in 1:length(shift_rule_strings)
+                for inner in (outer + 1):length(shift_rule_strings)
+                    if !isempty(shift_indices[outer]) && !isempty(shift_indices[inner])
+                        RID_outer = shift_indices[outer][1]
+                        RID_inner = shift_indices[inner][1]
+                        addconstraint!(grammar, Forbidden(RuleNode(RID_inner, [RuleNode(RID_outer, [VarNode(:a)])])))
+                    end
+                end
+            end
+
+            # im_cvc/if0_cvc: an Ordered constraint on the two branches is
+            # unsound here (if(x,y,z) is not symmetric in y,z without negating
+            # x). Instead:
+            #  - a repeated branch makes the condition irrelevant (redundant), and
+            #  - a literal 0/1 condition folds the whole conditional away.
+            literal_indices = vcat(
+                find_rules_exact(grammar, "0"),
+                find_rules_exact(grammar, "1"),
+            )
             for rule_string in ["im_cvc", "if0_cvc"]
                 indices = find_rules(grammar, rule_string)
                 if !isempty(indices)
-                    constraint = Ordered(RuleNode(indices[1], [VarNode(:a), VarNode(:b), VarNode(:c)]), [:b, :c])
-                    addconstraint!(grammar, constraint)
+                    RID_i = indices[1]
+                    addconstraint!(grammar, Forbidden(RuleNode(RID_i, [VarNode(:x), VarNode(:y), VarNode(:y)])))
+                    for lit in literal_indices
+                        addconstraint!(grammar, Forbidden(RuleNode(RID_i, [RuleNode(lit), VarNode(:y), VarNode(:z)])))
+                    end
                 end
             end
-        end 
+        end
 
         if constrained_space >= 2
             # for i in 1:length(grammar.rules)
@@ -156,9 +208,60 @@ function add_benchmark_constraints(grammar, ben_module; constrained_space=2)
                     addconstraint!(grammar, Contains(rule))
                 end
             elseif ben_module == PBE_BV_Track_2018
-                for i in filter(i -> !grammar.isterminal[i], 1:length(grammar.rules))
-                    addconstraint!(grammar, ForbiddenSequence([i,i]))
+                # "Useful" diversity constraint (per the paper: "we forbid
+                # using the same operator twice in a row"): forbid a rule from
+                # appearing again *anywhere* below itself in the AST, not just
+                # as an immediate child. ForbiddenSequence([i, i]) matches
+                # along the whole ancestor-descendant path, with arbitrary
+                # gaps in between (e.g. it forbids bvand(x, bvor(bvand(y,z),
+                # w)), not just bvand(bvand(y,z), w)). This is strictly
+                # stronger than -- and replaces -- forbidding only immediate
+                # nesting, and removes a much larger part of the space at the
+                # cost of completeness.
+                all_op_rule_strings = [
+                    "bvadd",
+                    "bvsub",
+                    "bvxor",
+                    "bvand",
+                    "bvor",
+                    "bvshl",
+                    "bvlshr",
+                    "bvashr",
+                    "bvnand",
+                    "bvnor",
+                    "bvneg",
+                    "bvnot",
+                    "ehad",
+                    "arba",
+                    "shesh",
+                    "smol",
+                    "im_cvc",
+                    "if0_cvc",
+                ]
+
+                for rule_string in all_op_rule_strings
+                    indices = find_rules(grammar, rule_string)
+                    if !isempty(indices)
+                        RID_i = indices[1]
+                        addconstraint!(grammar, ForbiddenSequence([RID_i, RID_i]))
+                    end
                 end
+
+                # Stronger diversity bias for the unary bit-twiddling ops:
+                # ForbiddenSequence only blocks *vertical* repetition (an op
+                # reappearing below itself). It misses horizontal reuse, e.g.
+                # bvadd_cvc(ehad_cvc(a), ehad_cvc(b)), where the same op is
+                # applied to two unrelated subtrees. Unique forbids the rule
+                # from appearing more than once anywhere in the program.
+                unique_rule_strings = ["ehad", "arba", "shesh", "smol", "bvnot"]
+                for rule_string in unique_rule_strings
+                    indices = find_rules(grammar, rule_string)
+                    if !isempty(indices)
+                        addconstraint!(grammar, Unique(indices[1]))
+                    end
+                end
+
+                @show grammar.constraints
             else
                 error("Invalid benchmark selected.")
             end
@@ -292,8 +395,22 @@ function run_EUSolver(ben_module; constrained_space=2)
 
         iterator = BFSIterator(problem_grammar, :Start; max_depth=max_depth, max_size=max_size)
 
+        # Build the fast generated interpreter (HerbInterpret.make_interpreter)
+        # once per problem and hand it to divide_and_conquer explicitly, the
+        # same way run_probe does. This is substantially faster on BV than
+        # falling back to rulenode2expr + execute_on_input per candidate.
+        interp = HerbInterpret.make_interpreter(
+            problem_grammar;
+            target_module = ben_module,
+            cache_module  = ben_module,
+        )
+
         start_time = time_ns()
 
+        # `mod` must be the module the grammar's functions (e.g. ehad_cvc,
+        # bvadd_cvc) are defined in. Without it, divide_and_conquer defaults
+        # to `Main`, every interpretation throws UndefVarError, and decide()
+        # silently swallows it (allow_errors=true), so nothing is ever found.
         program, num_derivations = divide_and_conquer(
             problem,
             iterator,
@@ -302,7 +419,9 @@ function run_EUSolver(ben_module; constrained_space=2)
             sym_constraint,
             n_predicates,
             max_time,
-            max_enums
+            max_enums,
+            ben_module;
+            interp = interp,
         )
 
         elapsed_time_s = (time_ns() - start_time) / 1e9

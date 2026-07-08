@@ -1,0 +1,6 @@
+[submodule "vendor/HerbSearch"]
+	path = vendor/HerbSearch
+	url = git@github.com:Herb-AI/HerbSearch.jl.git
+[submodule "vendor/HerbConstraints"]
+	path = vendor/HerbConstraints
+	url = git+ssh://git@github.com/Herb-AI/HerbConstraints.jl

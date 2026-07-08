@@ -28,8 +28,10 @@ StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 
 [sources]
 Garden = {path = "/home/thinnerichs/.julia/dev/Garden.jl"}
-HerbBenchmarks = {path = "/home/thinnerichs/.julia/dev/HerbBenchmarks.jl"}
-HerbSearch = {path = "/home/thinnerichs/.julia/dev/HerbSearch"}
+HerbBenchmarks = {url = "git@github.com:Herb-AI/HerbBenchmarks.jl.git", rev = "fca03211df6036b1edf8866d63f62dfe7d8d80f1"}
+HerbConstraints = {path = "vendor/HerbConstraints"}
+HerbInterpret = {url = "git@github.com:Herb-AI/HerbInterpret.jl.git", rev = "24102578d839e70334b2bd16a0d4b272354f4726"}
+HerbSearch = {path = "vendor/HerbSearch"}
 
 [compat]
 BenchmarkTools = "1.6.3"
@@ -39,6 +41,7 @@ DataFrames = "1.5.0"
 DecisionTree = "0.12.4"
 HerbConstraints = "1"
 HerbCore = "1"
+HerbInterpret = "1.0.1"
 MLStyle = "0.4.17"
 PGFPlotsX = "1.6.2"
 Plots = "1.40.7"
